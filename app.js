@@ -1,15 +1,42 @@
 require("colors");
 
-console.clear();
-
-const { mostrarMenu, pausa } = require("./helpers/mensajes");
+const { guardarDB, leerDB } = require("./helpers/guardarArchivo");
+const { inquirerMenu, pausa, leerInput } = require("./helpers/inquirer");
+const Tarea = require("./models/tarea");
+const Tareas = require("./models/tareas");
 
 const main = async () => {
   let opt = "";
+  const tareas = new Tareas();
+
+  const tareasDB = leerDB();
+
+  if (tareasDB) {
+    tareas.cargarTareasFromArray(tareasDB);
+  }
+
   do {
-    opt = await mostrarMenu();
-    console.log({ opt });
-    if (opt !== "0") await pausa();
+    opt = await inquirerMenu();
+
+    switch (opt) {
+      case "1":
+        const desc = await leerInput("Descripción: ");
+        tareas.crearTarea(desc);
+        break;
+      case "2":
+        tareas.listarTareas();
+        break;
+      case "3":
+        tareas.listarCompletadas(true);
+        break;
+      case "4":
+        tareas.listarCompletadas(false);
+        break;
+    }
+
+    guardarDB(tareas.listadoArr);
+
+    await pausa();
   } while (opt !== "0");
 };
 
